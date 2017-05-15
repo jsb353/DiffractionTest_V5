@@ -10,7 +10,7 @@
 %                 FIGNUM: (optional) Figure number in which to draw the diffraction geometry
 %                 RESULT: a structure data-type containing:
 %                       .TransformedSurfaceNormal: z-axis       
-%                       .TransformedReflectionNormal: Such that x-axis is the intersection between reflection planes and surface         
+%                       .TransformedReflectionNordmal: Such that x-axis is the intersection between reflection planes and surface         
 %                       .Incident: Incident beam in cartesian coordinates
 %                       .IncidentSpherical: Incident beam in spherical coordinates
 %                       .Reflected: Reflected beam in cartesian coordinates
@@ -43,24 +43,21 @@
 function Result = NonCoplanarDiffraction(BraggAngle, GrazingAngle, SurfaceNormal, ReflectionNormal, FigNum)
 
 
-
-% Check angle of assymetry
-%if AssymAngle == 0
-AssymAngle = acos((ReflectionNormal*SurfaceNormal')/(sqrt(sum(ReflectionNormal.^2))*sqrt(sum(SurfaceNormal.^2))))*180/pi;
-%end
+%% Check angle of assymetry
+AssymAngle = acosd((ReflectionNormal*SurfaceNormal')/(sqrt(sum(ReflectionNormal.^2))*sqrt(sum(SurfaceNormal.^2))))*180/pi;
 if BraggAngle>AssymAngle
     warning('Non-coplanar diffraction not possible with Bragg angle > Assymetry angle')
 end
 
-% Convert angles to rad.
-IncidentPsi = (GrazingAngle+90)*pi/180; % use conventional sphereical coordinate (psi=0 for z-axis)
+%% Convert angles to rad.
+IncidentPsi = (GrazingAngle+90)*pi/180; % use conventional spherical coordinate (psi=0 for z-axis)
 BraggAngle = BraggAngle*pi/180;
 
-% Normalize surface and reflection vectors
+%% Normalize surface and reflection vectors
 SurfaceNormal = SurfaceNormal/sqrt(SurfaceNormal*SurfaceNormal');
 ReflectionNormal = ReflectionNormal/sqrt(ReflectionNormal*ReflectionNormal');
 
-% Rotate crystal such that surface normal points to z-axis
+%% Rotate crystal such that surface normal points to z-axis
 if SurfaceNormal(2) ~=0
     ay = pi/2 - acos(([0 1 0]*(SurfaceNormal.*[0 1 1])')/sqrt(sum((SurfaceNormal.*[0 1 1]).*(SurfaceNormal.*[0 1 1]))));
     TransMat = [1 0 0; 0 cos(-ay) -sin(-ay); 0 sin(-ay) cos(-ay)];
@@ -109,7 +106,7 @@ TransMat = [cos(theta0) -sin(theta0); sin(theta0) cos(theta0)];
 
 theta = asin((cos(pi/2+BraggAngle)-ReflectionNormal(3)*cos(IncidentPsi))/(ReflectionNormal(2)*sin(IncidentPsi)));
 
-Incident = [sin(IncidentPsi)*cos(theta) sin(IncidentPsi)*sin(theta) cos(IncidentPsi)];
+Incident = [sin(IncidentPsi)*cos(theta), sin(IncidentPsi)*sin(theta), cos(IncidentPsi)];
 Incident = Incident/sqrt(Incident*Incident');
 
 Reflected = Incident - 2*ReflectionNormal*(Incident*ReflectionNormal');
@@ -140,19 +137,25 @@ Result.IncidentSpherical = [theta_i psi_i];
 Result.Reflected = Reflected;
 Result.ReflectedSpherical = [theta_r psi_r];
 
-
-
-if nargin>5 % plot result %>4
+if nargin>4 % plot result
     figure(FigNum)
     hold off
     arrow3D([0,0,0], Result.TransformedReflectionNormal*100,  'k', 0.90);
     hold on
-    p1=[0 Result.TransformedReflectionNormal(3) -Result.TransformedReflectionNormal(2)] ;
-    p2=[Result.TransformedReflectionNormal(3) 0 -Result.TransformedReflectionNormal(1)] ;
+    if(Result.TransformedReflectionNormal(3)==0)
+        p1=cross(Result.TransformedReflectionNormal,[Result.TransformedReflectionNormal(1)+0.5;Result.TransformedReflectionNormal(2)-0.33;Result.TransformedReflectionNormal(3)]);
+        p2=cross(Result.TransformedReflectionNormal,[Result.TransformedReflectionNormal(1)+0.35;Result.TransformedReflectionNormal(2)-0.98;Result.TransformedReflectionNormal(3)+1]);
+        % The values used here do not represent anything. For better ratio of
+        % the planes, adjust them in the two lines above.
+    else
+        p1=[0, Result.TransformedReflectionNormal(3), -Result.TransformedReflectionNormal(2)] ;
+        p2=[Result.TransformedReflectionNormal(3), 0, -Result.TransformedReflectionNormal(1)] ;
+    end
     plotp(p1',p2')
     arrow3D([0,0,0], Result.Reflected*100,  'r', 0.90);
     arrow3D(-Result.Incident*100, Result.Incident*100,   'r', 0.90);
     title(strcat(['Azimuthal deviation = ', num2str(Result.IncidentSpherical(1)-Result.ReflectedSpherical(1),2), ' deg ; Exit angle relative to surface = ', num2str(90-Result.ReflectedSpherical(2),2), ' deg']))
 end
+
 
 % Result.IncidentSpherical
