@@ -47,10 +47,10 @@ function rho = Density(Lattice)
     
     if length(Lattice.Z)==1
         rho = AMU*GetAtomicMass(Lattice.Z)*NumberOfAtoms/Lattice.Vc/1000; % [g/cm3] 
-    Lattice.Vc
+    %Lattice.Vc
     else
         rho = AMU*sum(GetAtomicMass(Lattice.Z(Lattice.AtomicTypes)))/Lattice.Vc/1000; % [g/cm3]
-    Lattice.Vc
+    %Lattice.Vc
     end
 
 end
