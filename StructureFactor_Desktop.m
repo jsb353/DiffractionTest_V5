@@ -244,5 +244,4 @@ for n=1:NumberOfAtoms
     % sum(Lattice.AtomicPositionsCartesian(n,:).*ReciprocalLatticeVectorsSum)
 end
 DummyAngle = (Result.BraggAngle) * pi / 180;
-%Result.Intensity = abs(Result.StructureFactor)^2 * Result.Multiplicity * ((1 + cos(2*DummyAngle).^2) / (sin(DummyAngle).^2 * cos(DummyAngle))); %Result.Multiplicity
-Result.Intensity = abs(Result.StructureFactor)^2 * Result.Multiplicity * (1+cosd(Result.BraggAngle)
+Result.Intensity = abs(Result.StructureFactor)^2 * Result.Multiplicity * ((1 + cos(2*DummyAngle).^2) / (sin(DummyAngle).^2 * cos(DummyAngle))); %Result.Multiplicity
