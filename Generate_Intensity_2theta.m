@@ -182,22 +182,23 @@ end
 countAngle=1;
 XRD_plot=zeros(ceil(180/Resolution+length),5);
 indexPlot=1;
-index=1;
+ArrayIndex=1;
 maxI=max(MainData(:,8));
 for angle=0:Resolution:180
     if (angle<MainData(countAngle,5))&& (angle+Resolution>MainData(countAngle,5)&&countAngle<length-1)
         Table.h=MainData(countAngle,1); %h
         Table.k=MainData(countAngle,2); %k
         Table.l=MainData(countAngle,3); %l
+        Table.BraggAngle=MainData(countAngle,5)/2;
         Table.TwoTheta=MainData(countAngle,5);
         Table.Intensity=MainData(countAngle,8); 
         Table.RelativeIntensity=Table.Intensity/maxI*100;
-        Table.Distance=MainData(countAngle,6);
-        Table.TwoPi_Distance=2*pi/Table.Distance;
-        Table.S=1/Table.Distance;
-        Table.BraggAngle=MainData(countAngle,5)/2;
-        Array(index)=Table;
-        index=index+1;
+        Table.d=MainData(countAngle,6);
+        Table.TwoPi_Distance=2*pi/Table.d;
+        Table.d_r=1/Table.d;
+        
+        
+        ArrayIndex=ArrayIndex+1;
         XRD_plot(indexPlot,1)=MainData(countAngle,5); %2theta
         XRD_plot(indexPlot,2)=MainData(countAngle,8); %Intensity of the actual point
         indexPlot=indexPlot+1;
@@ -206,7 +207,9 @@ for angle=0:Resolution:180
                 countAngle=countAngle+1;
             end
         end
+        Table.m=MainData(countAngle,7);
         countAngle=countAngle+1;
+        Array(ArrayIndex)=Table;
     else
         XRD_plot(indexPlot,1)=angle; %Looping through the angles.
         XRD_plot(indexPlot,2)=0; %No intensity
