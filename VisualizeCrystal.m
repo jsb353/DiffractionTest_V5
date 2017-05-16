@@ -58,6 +58,10 @@ if exist('M')==1
         end
     end
 
+%     Z=ParseChemicalSymbol(Lattice.Symbol);
+%     Radii=GetAtomicRadius(Z);
+%     AverageRadius=sum(Radii)/size(Z,2);
+%     Rad=Radii/AverageRadius;
 
     % Plotting the points (basis coordinates)
     figure(FigNum)
@@ -67,6 +71,7 @@ if exist('M')==1
         if Type(i)<7
             p = Type(i);
         end
+        %         surf(Rad(p)*(rx+M(i,1)), Rad(p)*(ry+M(i,2)), Rad(p)*(rz+M(i,3)),'FaceColor', pltColor(p),'EdgeColor','none');
         surf(rx+M(i,1), ry+M(i,2), rz+M(i,3),'FaceColor', pltColor(p),'EdgeColor','none');
         view(10, 12)
         hold on;
@@ -93,7 +98,7 @@ if exist('M')==1
     
     
     if isfield(Lattice,'Z')==0 
-        [Lattice.Z N] = ParseChemicalSymbol(Lattice.Symbol);
+        [Lattice.Z, N] = ParseChemicalSymbol(Lattice.Symbol);
     end 
     
     for i=1:size(Lattice.Z,2)
@@ -118,7 +123,7 @@ if exist('M')==1
         str = strcat([str, GetElementSymbol(Lattice.Z(i)), '=', clr, ', ']);
     end
 
-  %  title(strcat([str, ' nnd=',  num2str(bond_dist), ' A']))
+   title(strcat([str, ' nnd=',  num2str(bond_dist), ' A']))
 %  title('Graphite','FontSize', 18 )
     axis([Vol(1,1)-1 Vol(1,2)+1 Vol(2,1)-1 Vol(2,2)+1 Vol(3,1)-1 Vol(3,2)+1])
      set(gca,'XTick',[])
