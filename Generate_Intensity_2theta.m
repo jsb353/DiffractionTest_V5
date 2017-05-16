@@ -43,16 +43,12 @@ addpath(genpath('C:\Users\Cosmin\Desktop\Diffraction-master\TestScripts'))
 % There will be repetitions
 % like 001 and 002
 % The software goes through all combinations given by user of Miller
-% indeces and returns the resulting information from Structure Factor. This
-% information is saved into RawData which is used as file of raw
-% data. It contains among other things: complex values for the intensity
-% and the Bragg angle. This are removed further in the script.
-% RawData is the first storage point/variable but the main
-% operations are done with MainData which is a matrix type variable as
-% well.
+% indeces and returns the resulting information from Structure Factor. If
+% the Bragg angle is real and the intensity is above a threshold, these
+% values are save.
 TypeOfFile=input('What kind of file extension do you want?\nOptions: nothing (press Enter), txt, xlsx, xls, dat, csv \n','s');
 
-RawData=zeros(10,4);
+MainData=zeros(10,4);
 countofdata=1;
 
 
@@ -62,31 +58,26 @@ for h=hkl:-1:-hkl
             if h==0 && k==0 && l==0
                 % This is to eliminate the 000
             else
-            Lattice.Reflection=[h k l];
-            RawData(countofdata,1)=h;
-            RawData(countofdata,2)=k;
-            RawData(countofdata,3)=l;
-            [Result,Lattice,Probe]= StructureFactor(Lattice,Probe);
-            RawData(countofdata,4)=Result.Intensity;
-            RawData(countofdata,5)=2*Result.BraggAngle;
-            RawData(countofdata,6)=Result.Distance;
-            countofdata=countofdata+1;
+                
+                Lattice.Reflection=[h k l];
+                [Result,Lattice,Probe]= StructureFactor(Lattice,Probe);
+                if Result.Intensity>Threshold && isreal(Result.BraggAngle)
+                    
+                    MainData(countofdata,1)=h;
+                    MainData(countofdata,2)=k;
+                    MainData(countofdata,3)=l;
+                    
+                    MainData(countofdata,4)=Result.Intensity;
+                    MainData(countofdata,5)=2*Result.BraggAngle;
+                    MainData(countofdata,6)=Result.Distance; 
+                    countofdata=countofdata+1;
+                end
             end
         end
     end
 end
 
-%% Eliminate the values with intensity below a threshold.
-% MainData is created by going through all raw data and removing all
-% the BraggAngles below the treshold or with complex values.
-countofplot=0;
-MainData=zeros(1,6);
-for i=1:size(RawData,1)
-    if(RawData(i,4)>Threshold && isreal(RawData(i,5)))
-        countofplot=countofplot+1;
-        MainData(countofplot,:)=RawData(i,:);
-    end
-end
+
 length=size(MainData,1);
 %% Sort everything by the Bragg angle.
 % It uses a bubble sort to rearrange all rows based on the fifth column
@@ -197,8 +188,6 @@ for angle=0:Resolution:180
         Table.TwoPi_Distance=2*pi/Table.d;
         Table.d_r=1/Table.d;
         
-        
-        ArrayIndex=ArrayIndex+1;
         XRD_plot(indexPlot,1)=MainData(countAngle,5); %2theta
         XRD_plot(indexPlot,2)=MainData(countAngle,8); %Intensity of the actual point
         indexPlot=indexPlot+1;
@@ -208,8 +197,10 @@ for angle=0:Resolution:180
             end
         end
         Table.m=MainData(countAngle,7);
-        countAngle=countAngle+1;
         Array(ArrayIndex)=Table;
+        ArrayIndex=ArrayIndex+1;
+        countAngle=countAngle+1;
+        
     else
         XRD_plot(indexPlot,1)=angle; %Looping through the angles.
         XRD_plot(indexPlot,2)=0; %No intensity
