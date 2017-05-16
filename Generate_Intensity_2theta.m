@@ -7,8 +7,8 @@
 % Threshold to limit the peaks to only the important ones (it is
 % intensity), Resolution to define how close two peaks can be together before
 % they are interpreted as a single one from the same family of planes and
-% span/IndexMax for what planes should be analyzed 
-% 
+% span/IndexMax for what planes should be analyzed
+%
 %
 %
 % Last updated 5-8-2017 Cosmin Popescu
@@ -28,18 +28,18 @@ addpath(genpath('C:\Users\Cosmin\Desktop\Diffraction-master\TestScripts'))
 
 % % Load your material
 % load Cr2AlC.mat
-% 
+%
 % % DEFINE YOUR X-RAYS
 % Probe.Type = 'x-ray';
 % Probe.Energy = 8047; % [eV] % define either Energy or lambda
 % Probe.Polarization = 's'; % s (perpendicular) or p (parallel)
-% 
+%
 % Threshold=1;
 % Resolution=0.1;
 % IndexMax=9;
 % FigNum=[];
 
-%% Loop over different hkl values individually. 
+%% Loop over different hkl values individually.
 % There will be repetitions
 % like 001 and 002
 % The software goes through all combinations given by user of Miller
@@ -69,7 +69,7 @@ for h=hkl:-1:-hkl
                     
                     MainData(countofdata,4)=Result.Intensity;
                     MainData(countofdata,5)=2*Result.BraggAngle;
-                    MainData(countofdata,6)=Result.Distance; 
+                    MainData(countofdata,6)=Result.Distance;
                     countofdata=countofdata+1;
                 end
             end
@@ -85,7 +85,7 @@ length=size(MainData,1);
 sorted=false;
 while sorted==false
     n=1;
-   while n<length
+    while n<length
         if MainData(n,5)>MainData(n+1,5)
             % If it finds a place where it is not sorted, it rearranges the
             % two rows and restarts going through all lines. It needs
@@ -95,12 +95,16 @@ while sorted==false
             MainData(n+1,:)=MainData(n,:);
             MainData(n,:)=store;
             n=1;
-        else 
+        else
             n=n+1;
         end
-   end
-   sorted=true; 
+    end
+    sorted=true;
 end
+% SortedData=zeros(size(MainData,1),size(MainData,2));
+% SortedData=TopDownMergeSort(MainData,SortedData,size(MainData,2),5);
+% MainData=SortedData;
+
 %% Make Plot
 
 if nargin>5
@@ -115,10 +119,10 @@ if nargin>5
 end
 
 %% Add the Miller indeces to the plot
-xseparation=-3;
+xseparation=-2;
 yseparation=max(MainData(:,4))*0.05;
 % This is a way to separate multiple combinations of hkl that give the same
-% theta. 
+% theta.
 MainData(:,7)=ones(length,1);
 for i=2:length
     if MainData(i,5)==MainData(i-1,5)
@@ -128,13 +132,12 @@ end
 % Write text at a separation from the point. If multiple point in the same
 % location, stack the hkl in order defined by previous for.
 if nargin >5
-    
     for i=1:length
         if MainData(i,7)==1
             h=MainData(i,1);
             k=MainData(i,2);
             l=MainData(i,3);
-            text( MainData(i,5)+xseparation,MainData(i,4)+yseparation*MainData(i,7),strcat([num2str(h), num2str(k), num2str(l)]))
+            text( MainData(i,5)+xseparation,MainData(i,4)+yseparation,strcat([num2str(h), num2str(k), num2str(l)]))
         end
     end
 end
@@ -151,7 +154,7 @@ for i=1:length
             MainData(currentposition,8)=MainData(currentposition,8)+MainData(n+1,8);
             MainData(n+1,8)=0;
             if(n+1<length)
-            n=n+1;
+                n=n+1;
             else
                 break
             end
@@ -182,7 +185,7 @@ for angle=0:Resolution:180
         Table.l=MainData(countAngle,3); %l
         Table.BraggAngle=MainData(countAngle,5)/2;
         Table.TwoTheta=MainData(countAngle,5);
-        Table.Intensity=MainData(countAngle,8); 
+        Table.Intensity=MainData(countAngle,8);
         Table.RelativeIntensity=Table.Intensity/maxI*100;
         Table.d=MainData(countAngle,6);
         Table.TwoPi_Distance=2*pi/Table.d;
@@ -206,7 +209,7 @@ for angle=0:Resolution:180
         XRD_plot(indexPlot,2)=0; %No intensity
         indexPlot=indexPlot+1;
         
-    end       
+    end
 end
 % subplot(2,1,1);
 hold on;
@@ -237,7 +240,7 @@ legend('MATLAB');
 %         end
 %     else
 %         Xtheta(1,i)=i-count;
-%         
+%
 %     end
 % end
 % Xtheta=Xtheta';
@@ -288,10 +291,10 @@ end
 % for i=1:length
 %     if(MainData(i,6)==1)
 %         fprintf (fid,'%d %d %d %f %f\r\n',MainData(i,1),MainData(i,2),MainData(i,3),MainData(i,5),MainData(i,8));
-%         
+%
 % %     else
 % %         fprintf(fid,'%d %d %d\r\n',MainData(i,1),MainData(i,2),MainData(i,3));
-%         
+%
 %     end
 % end
 % fclose(fid);
