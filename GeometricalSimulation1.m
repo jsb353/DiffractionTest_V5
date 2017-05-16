@@ -1,22 +1,23 @@
 % created for noncoplanar grazing incidence x-ray diffraction
 % Probe.psi is grazing angle in degrees (small)
+% Last updates 4-26-2017 Cosmin Popescu
 
-
-function [I SF] = GeometricalSimulation1(Lattice, Probe, Detector, hkl_space, FigNum)
+function I = GeometricalSimulation1(Lattice, Probe, Detector, hkl_space, FigNum)
 
 % save GeometricalSimulation1.mat Lattice Probe Crystal Detector hkl_space
-% Input extension to save data
-TypeOfFile=input('What kind of file extension do you want? Options: none, txt, xlsx, xls, dat, csv \n','s');
-% Original program starts here
-I = zeros(1000,1000);
+%% Input extension to save data
+TypeOfFile=input('What kind of file extension do you want?\nOptions: nothing (press Enter), txt, xlsx, xls, dat, csv \n','s');
+
+%% Original program starts here
+I = zeros(3000,3000);
 PixelsPerUnit = size(I,1)/Detector.Size;
 dy = Detector.DistanceToSample*tan((Probe.psi)*pi/180);
 
-% Check the shape of the detector. If no input, assume square.
+%% Check the shape of the detector. If no input, assume square.
 if isfield(Lattice,'Shape')==0  % default
     Detector.Shape =  'square';
 end
-% If a number for the figure is in input, generate figure no# FigNum.
+%% If a number for the figure is in input, generate figure no# FigNum.
 % Proceed to plot the main ray point. No crystalographic value.
 if nargin>4 % plot result
     figure(FigNum)
@@ -27,16 +28,15 @@ if nargin>4 % plot result
 end
 
 xy_space = [0 0];
-
-
-% Loop over hkl and output image
+%% Loop over hkl and output image
 index=1;
+Old_Theta_I=[];
+Old_Theta_R=[];
 for k = hkl_space
     for h = hkl_space
         
         for l = hkl_space
-            % Generate the reflection directions (using Miller indeces).
-            %%Lattice.Reflection = [2 0 4]
+            %% Generate the reflection directions (using Miller indeces).
             Lattice.Reflection = [h k l];
             [SF, Lattice, Probe] = StructureFactor(Lattice, Probe); % CALCULATE THE STRUCTURE FACTOR
             % If the Bragg angle is smaller than the asymmetric angle.
@@ -73,7 +73,7 @@ for k = hkl_space
                                 text(x-Detector.Offset(1),y-Detector.Offset(2),strcat([num2str(h), num2str(k), num2str(l)]));
                                 text(-x-Detector.Offset(1),y-Detector.Offset(2),strcat([num2str(h), num2str(k), num2str(l)]));
                                 
-                                % Collect data for table
+                                %% Collect data for table
                                 Table.h=h;
                                 Table.k=k;
                                 Table.l=l;
@@ -81,24 +81,32 @@ for k = hkl_space
                                 Table.Incident_Psi=Result.IncidentSpherical(2);
                                 Table.Reflected_Theta=Result.ReflectedSpherical(1);
                                 Table.Reflected_Psi=Result.ReflectedSpherical(2);
+                                Table.Theta_Difference=Result.ReflectedSpherical(1)-Result.IncidentSpherical(1);
+                                if index>1
+                                    Table.Angle_to_Next_Theta_I=Result.IncidentSpherical(1)-Old_Theta_I;
+                                    Table.Angle_to_Next_Theta_R=Result.ReflectedSpherical(1)-Old_Theta_R;
+                                else
+                                    Table.Angle_to_Next_Theta_I=0;
+                                    Table.Angle_to_Next_Theta_R=0;
+                                end
+                                Table.Intensity=SF.Intensity;
+                                Table.Detector_X=pix_c;
+                                Table.Detector_Y=pix_r;
                                 Table.IncidentX=Result.Incident(1);
                                 Table.IncidentY=Result.Incident(2);
                                 Table.IncidentZ=Result.Incident(3);
                                 Table.ReflectedX=Result.Reflected(1);
                                 Table.ReflectedY=Result.Reflected(2);
                                 Table.ReflectedZ=Result.Reflected(3);
-                                Table.thetaDifferencex=Result.Reflected(1)-Result.Incident(1);
-                                Table.thetaDifferencey=Result.Reflected(2)-Result.Incident(2);
-                                Table.thetaDifferencez=Result.Reflected(3)-Result.Incident(3);
-                                Table.DetectorPointX=x;
-                                Table.DetectorPointY=y;
-                                Array(index)=Table;
                                 
+                                Array(index)=Table;
+                                Old_Theta_I=Result.IncidentSpherical(1);
+                                Old_Theta_R=Result.ReflectedSpherical(1);
                                 index=index+1;
-                                % End of collection of data for table
+                                %% End of collection of data for table
                             else
-                                    [h k l];
-                                 [x y];
+                                %    [h k l]
+                                % [x y]
                             end
                             xy_space = [xy_space; round(x) round(y)];
                         end
@@ -109,31 +117,33 @@ for k = hkl_space
     end
 end
 I = flipud(I);
-% Save table if needed.
+%% Save table if needed.
 Table=struct2table(Array);
+time=datestr(datetime('now'));
+time(15)='_';
+time(18)='_';
+time(12)='_';
+
+NameOFile=strcat(Lattice.Symbol,'_',Lattice.Type,'_',num2str(Lattice.Normal(1)),num2str(Lattice.Normal(2)),...
+    num2str(Lattice.Normal(3)),'_',time,'_','XRD_spherical_angles.');
 if size(TypeOfFile,2)==4
     if TypeOfFile=='xlsx'
-        Name=strcat(Lattice.Symbol,'_',Lattice.Type,'_','XRD_spherical_angles.xlsx');
-        writetable(Table,Name);
+        writetable(Table,strcat(NameOFile,'xlsx'));
     end
 elseif size(TypeOfFile,2)==3
     if TypeOfFile== 'txt'
-        Name=strcat(Lattice.Symbol,'_',Lattice.Type,'_','XRD_spherical_angles.txt');
-        writetable(Table,Name);
+        writetable(Table,strcat(NameOFile,'txt'));
     elseif TypeOfFile=='dat'
-        Name=strcat(Lattice.Symbol,'_',Lattice.Type,'_','XRD_spherical_angles.dat');
-        writetable(Table,Name);
+        writetable(Table,strcat(NameOFile,'dat'));
     elseif TypeOfFile == 'csv'
-        Name=strcat(Lattice.Symbol,'_',Lattice.Type,'_','XRD_spherical_angles.csv');
-        writetable(Table,Name);
+        writetable(Table,strcat(NameOFile,'csv'));
     elseif TypeOfFile == 'xls'
-        Name=strcat(Lattice.Symbol,'_',Lattice.Type,'_','XRD_spherical_angles.xls');
-        writetable(Table,Name);
+        writetable(Table,strcat(NameOFile,'xls'));
     end
 else %default do nothing
 end
 
-% Continuation of original program
+%% Continuation of original program
 if nargin>4 % plot result
     if strcmpi(Detector.Shape, 'square') == 1
         %plot([-Detector.Size/2 Detector.Size/2], [Detector.Size/2 Detector.Size/2], '-k', 'LineWidth', 2)
@@ -166,10 +176,14 @@ if nargin>4 % plot result
       set(gca,'xtick',[])
       set(gca,'ytick',[])
 end
+subplot(1,2,1);
+axis('square');
+subplot(1,2,2);
+axis('square');
 
 end
 
-% Function: Create Spot for the XRD Pattern
+%% Function: Create Spot for the XRD Pattern
 function IMAGE = CreateSpot(IMAGE, CX, CY, WX, WY, AMPLITUDE, ANGLE)
 
 % AMPLITUDE
