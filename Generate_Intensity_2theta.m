@@ -6,7 +6,7 @@
 % Two Theta, the intensity and relative intensity, interlayer d spacing,
 % 2pi/d, d_r (1/d) and m, the multiplicity.
 % You can select the table to be outputed also as one of the extensions
-% displayed at the initial user input. 
+% displayed at the initial user input.
 %
 % The function requires minimum of 3 inputs: Lattice, Probe and hkl
 %
@@ -20,12 +20,35 @@
 % will output also the scatterplot of the relative contribution of each
 % reflection based on the reflection family.
 %
+% If for high hkl values, you don't get all the expected information in the
+% table, it might be because the resolution is too high. Consider
+% decreasing it.
 %
 %
 %
 % Last updated 5-16-2017 Cosmin Popescu
 
 function [Table]=Generate_Intensity_2theta(Lattice, Probe,hkl,Threshold, Resolution,FigNum)
+%% Get the XRD Pattern
+
+addpath(genpath('C:\Users\Cosmin\Desktop\Grand Diffraction Master'))
+addpath(genpath('C:\Users\Cosmin\Desktop\Cr2AlC'))
+addpath(genpath('C:\Users\Cosmin\Desktop\Diffraction-master\StructureLibrary'))
+addpath(genpath('C:\Users\Cosmin\Desktop\Diffraction-master\TestScripts'))
+%addpath(genpath('C:\Users\Cosmin\Desktop\Diffraction-master'))
+
+% % Load your material
+% load Cr2AlC.mat
+%
+% % DEFINE YOUR X-RAYS
+% Probe.Type = 'x-ray';
+% Probe.Energy = 8047; % [eV] % define either Energy or lambda
+% Probe.Polarization = 's'; % s (perpendicular) or p (parallel)
+%
+% Threshold=1;
+% Resolution=0.1;
+% IndexMax=9;
+% FigNum=[];
 
 %% Loop over different hkl values individually.
 % Go through all combinations given by user of Miller
@@ -59,7 +82,7 @@ for h=hkl:-1:-hkl
                     
                     MainData(countofdata,1)=h;
                     MainData(countofdata,2)=k;
-                    MainData(countofdata,3)=l;                    
+                    MainData(countofdata,3)=l;
                     MainData(countofdata,4)=Result.Intensity;
                     MainData(countofdata,5)=2*Result.BraggAngle;
                     MainData(countofdata,6)=Result.Distance;
@@ -77,7 +100,7 @@ length=size(MainData,1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Sort everything by the Bragg angle.
-% It uses a bubble sort to rearrange all rows based on the twotheta. 
+% It uses a bubble sort to rearrange all rows based on the twotheta.
 
 sorted=false;
 while sorted==false
@@ -141,10 +164,10 @@ end
 if nargin >5
     for i=1:length
         if MainData(i,7)==1
-            h=MainData(i,1);
-            k=MainData(i,2);
-            l=MainData(i,3);
-            text( MainData(i,5)+xseparation,MainData(i,4)+yseparation,strcat([num2str(h), num2str(k), num2str(l)]))
+            H=MainData(i,1);
+            K=MainData(i,2);
+            L=MainData(i,3);
+            text( MainData(i,5)+xseparation,MainData(i,4)+yseparation,strcat([num2str(H), num2str(K), num2str(L)]))
         end
     end
 end
@@ -213,15 +236,33 @@ for angle=0:Resolution:180
         XRD_plot(indexPlot,1)=MainData(countAngle,5); %2theta
         XRD_plot(indexPlot,2)=MainData(countAngle,8); %Intensity of the actual point
         indexPlot=indexPlot+1;
-        if countAngle<length-1
-            while(MainData(countAngle+1,7)>1&&(countAngle<(length-2)))
-                countAngle=countAngle+1;
+        
+        if countAngle<length
+            while(MainData(countAngle+1,7)>1)
+                if countAngle<length-1
+                    countAngle=countAngle+1;
+                else
+                    countAngle=length;
+                    break;
+                end
             end
         end
+        
         Table.m=MainData(countAngle,7);
         Array(ArrayIndex)=Table;
         ArrayIndex=ArrayIndex+1;
-        countAngle=countAngle+1;
+        if countAngle<length
+            if MainData(countAngle+1,5)-MainData(countAngle,5)<Resolution
+                warning('The separation between some peaks is less than the Resolution.\n Please decrease the value for Resolution.');
+                display(MainData(countAngle,5));
+                display(MainData(countAngle+1,5));
+                display(MainData(countAngle,7));
+                display(MainData(countAngle+1,7));
+            end
+        end
+        if countAngle<length
+            countAngle=countAngle+1;
+        end
         
     else
         XRD_plot(indexPlot,1)=angle; %Looping through the angles.
