@@ -8,7 +8,10 @@
 % You can select the table to be outputed also as one of the extensions
 % displayed at the initial user input.
 %
-% The function requires minimum of 3 inputs: Lattice, Probe and hkl
+% The function requires minimum of 2 inputs: Lattice and Probe 
+% GENERATE_INTENSITY_2THETA(LATTICE, PROBE) generates the powder x-ray
+% pattern and the table with indeces between 0 and 8 and with Threshold=1
+% and Resolution-0.1;
 %
 % GENERATE_INTENSITY_2THETA(LATTICE, PROBE,HKL) Gives just the powder x-ray
 % pattern and the table with a Threshold=1 and Resolution=0.1;
@@ -62,6 +65,9 @@ TypeOfFile=input('What kind of file extension do you want?\nOptions: nothing (pr
 
 MainData=zeros(10,4);
 countofdata=1;
+if nargin <3
+   hkl=8; 
+end
 if nargin<4
     Threshold=1;
     Resolution=0.1;
