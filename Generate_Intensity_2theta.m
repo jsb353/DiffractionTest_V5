@@ -13,45 +13,21 @@
 % pattern and the table with indeces between 0 and 8 and with Threshold=1
 % and Resolution-0.1;
 %
-% GENERATE_INTENSITY_2THETA(LATTICE, PROBE,HKL) Gives just the powder x-ray
-% pattern and the table with a Threshold=1 and Resolution=0.1;
+% GENERATE_INTENSITY_2THETA(LATTICE, PROBE,FIGNUM) Gives just the powder x-ray
+% pattern and the table with a Threshold=1 and Resolution=0.1 and hkl=6;
 %
-% GENERATE_INTENSITY_2THETA(LATTICE, PROBE,HKL,THRESHOLD) Gives the x-ray
-% pattern, the table with Resolution=0.1;
-%
-% GENERATE_INTENSITY_2THETA(LATTICE,PROBE,HKL,THRESHOLD,RESOLUTION,FIGNUM)
-% will output also the scatterplot of the relative contribution of each
-% reflection based on the reflection family.
+% GENERATE_INTENSITY_2THETA(LATTICE, PROBE,FIGNUM,HKL) Gives the x-ray
+% pattern, the table with Threshold=1 and Resolution=0.1;
 %
 % If for high hkl values, you don't get all the expected information in the
 % table, it might be because the resolution is too high. Consider
 % decreasing it.
 %
 %
-%
-% Last updated 5-16-2017 Cosmin Popescu
+% Last updated 5-17-2017 Cosmin Popescu
 
-function [Table]=Generate_Intensity_2theta(Lattice, Probe,hkl,Threshold, Resolution,FigNum)
+function [Table]=Generate_Intensity_2theta(Lattice, Probe,FigNum,hkl,Threshold, Resolution)
 %% Get the XRD Pattern
-
-addpath(genpath('C:\Users\Cosmin\Desktop\Grand Diffraction Master'))
-addpath(genpath('C:\Users\Cosmin\Desktop\Cr2AlC'))
-addpath(genpath('C:\Users\Cosmin\Desktop\Diffraction-master\StructureLibrary'))
-addpath(genpath('C:\Users\Cosmin\Desktop\Diffraction-master\TestScripts'))
-%addpath(genpath('C:\Users\Cosmin\Desktop\Diffraction-master'))
-
-% % Load your material
-% load Cr2AlC.mat
-%
-% % DEFINE YOUR X-RAYS
-% Probe.Type = 'x-ray';
-% Probe.Energy = 8047; % [eV] % define either Energy or lambda
-% Probe.Polarization = 's'; % s (perpendicular) or p (parallel)
-%
-% Threshold=1;
-% Resolution=0.1;
-% IndexMax=9;
-% FigNum=[];
 
 %% Loop over different hkl values individually.
 % Go through all combinations given by user of Miller
@@ -65,15 +41,16 @@ TypeOfFile=input('What kind of file extension do you want?\nOptions: nothing (pr
 
 MainData=zeros(10,4);
 countofdata=1;
-if nargin <3
-   hkl=8; 
+if nargin <4
+   hkl=6; 
 end
-if nargin<4
+if nargin<5
     Threshold=1;
     Resolution=0.1;
-elseif nargin<5
+elseif nargin<6
     Resolution=0.1;
 end
+
 
 for h=hkl:-1:-hkl
     for k=hkl:-1:-hkl
@@ -141,8 +118,11 @@ end
 
 %% Make scatter plot with relative intensities of each reflection
 
-if nargin>5
+if nargin>2
     figure(FigNum)
+else
+    figure
+end
     plot(MainData(:,5),MainData(:,4),'ob','linewidth',2);
     xlabel('2\theta');
     ylabel('Intensity');
@@ -150,7 +130,7 @@ if nargin>5
     title(Title);
     axis([0 180 0 1.1*max(MainData(:,4))]);
     hold on;
-end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -167,7 +147,7 @@ for i=2:length
 end
 % Write text at a separation from the point. If multiple point in the same
 % location, stack the hkl in order defined by previous for.
-if nargin >5
+
     for i=1:length
         if MainData(i,7)==1
             H=MainData(i,1);
@@ -176,7 +156,6 @@ if nargin >5
             text( MainData(i,5)+xseparation,MainData(i,4)+yseparation,strcat([num2str(H), num2str(K), num2str(L)]))
         end
     end
-end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -215,7 +194,7 @@ end
 
 %% Generating XRD plot with resolution based on range.
 
-if nargin>5
+if nargin>2
     figure(FigNum+1)
 else % default
     figure
@@ -291,8 +270,7 @@ legend('MATLAB');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-%% Make table with Miller indeces.
+% Make table with Miller indeces.
 Table=struct2table(Array);
 time=datestr(datetime('now'));
 time(15)='_';
@@ -317,4 +295,4 @@ elseif size(TypeOfFile,2)==3
 else %default do nothing
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
