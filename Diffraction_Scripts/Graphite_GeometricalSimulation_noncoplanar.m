@@ -7,12 +7,10 @@ home
 
 % PATH TO DIFFWIZ LIBRARY
 addpath(genpath('C:\Users\maher\Google drive\DIFFWIZ\'))
-addpath(genpath('C:\Users\Cosmin\Desktop\Grand Diffraction Master\'))
+
 
 % DEFINE LATTICE OR LOAD LATTICE FROM EXISTING STRUCTURE LIBRARY
-addpath(genpath('C:\Users\Cosmin\Desktop\Cr2AlC'))
-load Cr2AlC.mat
-%load graphite.mat
+load graphite.mat
 
 % DEFINE DIRECTION OF CRYSTAL NORMAL
 Lattice.Normal = [0 0 1]; 

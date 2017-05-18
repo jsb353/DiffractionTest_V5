@@ -7,8 +7,7 @@ close all
 
 % PATH TO DIFFWIZ LIBRARY
 addpath(genpath('C:\Users\maher\Google drive\DIFFWIZ\'))
-addpath(genpath('C:\Users\Cosmin\Desktop\Cr2AlC\'))
-addpath(genpath('C:\Users\Cosmin\Desktop\Grand-Diffraction-Master\'))
+
 
 % DEFINE LATTICE OR LOAD LATTICE FROM EXISTING STRUCTURE LIBRARY
 load graphite.mat
