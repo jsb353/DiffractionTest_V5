@@ -11,22 +11,22 @@
 % The function requires minimum of 2 inputs: Lattice and Probe 
 % GENERATE_INTENSITY_2THETA(LATTICE, PROBE) generates the powder x-ray
 % pattern and the table with indeces between 0 and 8 and with Threshold=1
-% and Resolution-0.1;
+% and Separation-0.1;
 %
 % GENERATE_INTENSITY_2THETA(LATTICE, PROBE,FIGNUM) Gives just the powder x-ray
-% pattern and the table with a Threshold=1 and Resolution=0.1 and hkl=6;
+% pattern and the table with a Threshold=1 and Separation=0.1 and hkl=6;
 %
 % GENERATE_INTENSITY_2THETA(LATTICE, PROBE,FIGNUM,HKL) Gives the x-ray
-% pattern, the table with Threshold=1 and Resolution=0.1;
+% pattern, the table with Threshold=1 and Separation=0.1;
 %
 % If for high hkl values, you don't get all the expected information in the
-% table, it might be because the resolution is too high. Consider
-% decreasing it.
+% table, it might be because the separation between the peaks is too high.
+% Consider decreasing it.
 %
 %
 % Last updated 5-17-2017 Cosmin Popescu
 
-function [Table]=Generate_Intensity_2theta(Lattice, Probe,FigNum,hkl,Threshold, Resolution)
+function [Table]=Generate_Intensity_2theta(Lattice, Probe,FigNum,hkl,Threshold, Separation)
 %% Get the XRD Pattern
 
 %% Loop over different hkl values individually.
@@ -41,14 +41,15 @@ TypeOfFile=input('What kind of file extension do you want?\nOptions: nothing (pr
 
 MainData=zeros(10,4);
 countofdata=1;
+% Check for user input. Fill in if not input. 
 if nargin <4
    hkl=6; 
 end
 if nargin<5
     Threshold=1;
-    Resolution=0.1;
+    Separation=0.1;
 elseif nargin<6
-    Resolution=0.1;
+    Separation=0.1;
 end
 
 
@@ -192,7 +193,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% Generating XRD plot with resolution based on range.
+%% Generating XRD plot with separation between the peaks based on user input or default.
 
 if nargin>2
     figure(FigNum+1)
@@ -200,12 +201,12 @@ else % default
     figure
 end
 countAngle=1;
-XRD_plot=zeros(ceil(180/Resolution+length),5);
+XRD_plot=zeros(ceil(180/Separation+length),5);
 indexPlot=1;
 ArrayIndex=1;
 maxI=max(MainData(:,8));
-for angle=0:Resolution:180
-    if (angle<MainData(countAngle,5))&& (angle+Resolution>MainData(countAngle,5)&&countAngle<length-1)
+for angle=0:Separation:180
+    if (angle<MainData(countAngle,5))&& (angle+Separation>MainData(countAngle,5)&&countAngle<length-1)
         % Collect data for the table.
         Table.h=MainData(countAngle,1); %h
         Table.k=MainData(countAngle,2); %k
@@ -237,8 +238,8 @@ for angle=0:Resolution:180
         Array(ArrayIndex)=Table;
         ArrayIndex=ArrayIndex+1;
         if countAngle<length
-            if MainData(countAngle+1,5)-MainData(countAngle,5)<Resolution
-                warning('The separation between some peaks is less than the Resolution.\n Please decrease the value for Resolution.');
+            if MainData(countAngle+1,5)-MainData(countAngle,5)<Separation
+                warning('The separation between some peaks is less than the Separation.\n Please decrease the value for Separation.');
                 display(MainData(countAngle,5));
                 display(MainData(countAngle+1,5));
                 display(MainData(countAngle,7));
