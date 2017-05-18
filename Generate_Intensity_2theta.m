@@ -1,59 +1,55 @@
 
-%% Get the XRD Pattern
-% Run through StructureFactor with the same parameters except the
-% Lattice.Normal to obtain multiple 2theta angles.
-% diffraction geometry of the (102) peak (noncoplanar)
-% It needs the Lattice and Probe to get information for StructureFactor,
-% Threshold to limit the peaks to only the important ones (it is
-% intensity), Resolution to define how close two peaks can be together before
-% they are interpreted as a single one from the same family of planes and
-% span/IndexMax for what planes should be analyzed 
-% 
+%% Generate the XRD Pattern
+% Generates a simulated powder x-ray diffraction pattern, a scatter plot
+% with the intensities of individual reflection with the hkl value of one
+% of the relfections in that family and a table with hkl, the Bragg Angle,
+% Two Theta, the intensity and relative intensity, interlayer d spacing,
+% 2pi/d, d_r (1/d) and m, the multiplicity.
+% You can select the table to be outputed also as one of the extensions
+% displayed at the initial user input.
+%
+% The function requires minimum of 2 inputs: Lattice and Probe 
+% GENERATE_INTENSITY_2THETA(LATTICE, PROBE) generates the powder x-ray
+% pattern and the table with indeces between 0 and 8 and with Threshold=1
+% and Resolution-0.1;
+%
+% GENERATE_INTENSITY_2THETA(LATTICE, PROBE,FIGNUM) Gives just the powder x-ray
+% pattern and the table with a Threshold=1 and Resolution=0.1 and hkl=6;
+%
+% GENERATE_INTENSITY_2THETA(LATTICE, PROBE,FIGNUM,HKL) Gives the x-ray
+% pattern, the table with Threshold=1 and Resolution=0.1;
+%
+% If for high hkl values, you don't get all the expected information in the
+% table, it might be because the resolution is too high. Consider
+% decreasing it.
 %
 %
-% Last updated 5-8-2017 Cosmin Popescu
+% Last updated 5-17-2017 Cosmin Popescu
 
-function [Table]=Generate_Intensity_2theta(Lattice, Probe,Threshold, Resolution, hkl,FigNum)
+function [Table]=Generate_Intensity_2theta(Lattice, Probe,FigNum,hkl,Threshold, Resolution)
 %% Get the XRD Pattern
-% Run through StructureFactor with the same parameters except the
-% Lattice.Normal to obtain multiple 2theta angles.
-% diffraction geometry of the (102) peak (noncoplanar)
-% Last updated 4-10-2017 Cosmin Popescu
 
-addpath(genpath('C:\Users\Cosmin\Desktop\Grand Diffraction Master'))
-addpath(genpath('C:\Users\Cosmin\Desktop\Cr2AlC'))
-addpath(genpath('C:\Users\Cosmin\Desktop\Diffraction-master\StructureLibrary'))
-addpath(genpath('C:\Users\Cosmin\Desktop\Diffraction-master\TestScripts'))
-%addpath(genpath('C:\Users\Cosmin\Desktop\Diffraction-master'))
+%% Loop over different hkl values individually.
+% Go through all combinations given by user of Miller
+% indeces and returns the resulting information from Structure Factor. If
+% the Bragg angle is real and the intensity is above a threshold, these
+% values are save.
 
-% % Load your material
-% load Cr2AlC.mat
-% 
-% % DEFINE YOUR X-RAYS
-% Probe.Type = 'x-ray';
-% Probe.Energy = 8047; % [eV] % define either Energy or lambda
-% Probe.Polarization = 's'; % s (perpendicular) or p (parallel)
-% 
-% Threshold=1;
-% Resolution=0.1;
-% IndexMax=9;
-% FigNum=[];
-
-%% Loop over different hkl values individually. 
-% There will be repetitions
-% like 001 and 002
-% The software goes through all combinations given by user of Miller
-% indeces and returns the resulting information from Structure Factor. This
-% information is saved into RawData which is used as file of raw
-% data. It contains among other things: complex values for the intensity
-% and the Bragg angle. This are removed further in the script.
-% RawData is the first storage point/variable but the main
-% operations are done with MainData which is a matrix type variable as
-% well.
+% Promt user for input on type of file output at the end.
 TypeOfFile=input('What kind of file extension do you want?\nOptions: nothing (press Enter), txt, xlsx, xls, dat, csv \n','s');
 
-RawData=zeros(10,4);
+
+MainData=zeros(10,4);
 countofdata=1;
+if nargin <4
+   hkl=6; 
+end
+if nargin<5
+    Threshold=1;
+    Resolution=0.1;
+elseif nargin<6
+    Resolution=0.1;
+end
 
 
 for h=hkl:-1:-hkl
@@ -62,39 +58,37 @@ for h=hkl:-1:-hkl
             if h==0 && k==0 && l==0
                 % This is to eliminate the 000
             else
-            Lattice.Reflection=[h k l];
-            RawData(countofdata,1)=h;
-            RawData(countofdata,2)=k;
-            RawData(countofdata,3)=l;
-            [Result,Lattice,Probe]= StructureFactor(Lattice,Probe);
-            RawData(countofdata,4)=Result.Intensity;
-            RawData(countofdata,5)=2*Result.BraggAngle;
-            RawData(countofdata,6)=Result.Distance;
-            countofdata=countofdata+1;
+                
+                Lattice.Reflection=[h k l];
+                [Result,Lattice,Probe]= StructureFactor(Lattice,Probe);
+                if Result.Intensity>Threshold && isreal(Result.BraggAngle)
+                    
+                    MainData(countofdata,1)=h;
+                    MainData(countofdata,2)=k;
+                    MainData(countofdata,3)=l;
+                    MainData(countofdata,4)=Result.Intensity;
+                    MainData(countofdata,5)=2*Result.BraggAngle;
+                    MainData(countofdata,6)=Result.Distance;
+                    countofdata=countofdata+1;
+                end
             end
         end
     end
 end
 
-%% Eliminate the values with intensity below a threshold.
-% MainData is created by going through all raw data and removing all
-% the BraggAngles below the treshold or with complex values.
-countofplot=0;
-MainData=zeros(1,6);
-for i=1:size(RawData,1)
-    if(RawData(i,4)>Threshold && isreal(RawData(i,5)))
-        countofplot=countofplot+1;
-        MainData(countofplot,:)=RawData(i,:);
-    end
-end
+
 length=size(MainData,1);
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %% Sort everything by the Bragg angle.
-% It uses a bubble sort to rearrange all rows based on the fifth column
-% which is the two theta.
+% It uses a bubble sort to rearrange all rows based on the twotheta.
+
 sorted=false;
 while sorted==false
     n=1;
-   while n<length
+    while n<length
         if MainData(n,5)>MainData(n+1,5)
             % If it finds a place where it is not sorted, it rearranges the
             % two rows and restarts going through all lines. It needs
@@ -104,16 +98,31 @@ while sorted==false
             MainData(n+1,:)=MainData(n,:);
             MainData(n,:)=store;
             n=1;
-        else 
+        else
             n=n+1;
         end
-   end
-   sorted=true; 
+    end
+    sorted=true;
 end
-%% Make Plot
 
-if nargin>5
+
+% Potential merge sort fail.
+% SortedData=zeros(size(MainData,1),size(MainData,2));
+% SortedData=TopDownMergeSort(MainData,SortedData,size(MainData,2),5);
+% MainData=SortedData;
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%% Make scatter plot with relative intensities of each reflection
+
+if nargin>2
     figure(FigNum)
+else
+    figure
+end
     plot(MainData(:,5),MainData(:,4),'ob','linewidth',2);
     xlabel('2\theta');
     ylabel('Intensity');
@@ -121,13 +130,15 @@ if nargin>5
     title(Title);
     axis([0 180 0 1.1*max(MainData(:,4))]);
     hold on;
-end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Add the Miller indeces to the plot
-xseparation=-3;
+xseparation=-2;
 yseparation=max(MainData(:,4))*0.05;
 % This is a way to separate multiple combinations of hkl that give the same
-% theta. 
+% theta.
 MainData(:,7)=ones(length,1);
 for i=2:length
     if MainData(i,5)==MainData(i-1,5)
@@ -136,19 +147,20 @@ for i=2:length
 end
 % Write text at a separation from the point. If multiple point in the same
 % location, stack the hkl in order defined by previous for.
-if nargin >5
-    
+
     for i=1:length
         if MainData(i,7)==1
-            h=MainData(i,1);
-            k=MainData(i,2);
-            l=MainData(i,3);
-            text( MainData(i,5)+xseparation,MainData(i,4)+yseparation*MainData(i,7),strcat([num2str(h), num2str(k), num2str(l)]))
+            H=MainData(i,1);
+            K=MainData(i,2);
+            L=MainData(i,3);
+            text( MainData(i,5)+xseparation,MainData(i,4)+yseparation,strcat([num2str(H), num2str(K), num2str(L)]))
         end
     end
-end
-%% Intensities on the same angle are added up
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Intensities on the same angle are added up
 
 MainData(:,8)=MainData(:,4);
 
@@ -157,10 +169,14 @@ for i=1:length
     currentposition=i;
     if(n<length-1)
         while(MainData(n+1,7)>1)
+            % if it sees a higher values for its occurence for the next
+            % spot, it means that the next spot has the same Bragg angle
+            % meaning it comes fomr the same family of reflection so it
+            % adds up the intensity
             MainData(currentposition,8)=MainData(currentposition,8)+MainData(n+1,8);
             MainData(n+1,8)=0;
             if(n+1<length)
-            n=n+1;
+                n=n+1;
             else
                 break
             end
@@ -173,10 +189,14 @@ for i=1:length
     
 end
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %% Generating XRD plot with resolution based on range.
-if nargin>5
+
+if nargin>2
     figure(FigNum+1)
-else
+else % default
     figure
 end
 countAngle=1;
@@ -186,38 +206,57 @@ ArrayIndex=1;
 maxI=max(MainData(:,8));
 for angle=0:Resolution:180
     if (angle<MainData(countAngle,5))&& (angle+Resolution>MainData(countAngle,5)&&countAngle<length-1)
+        % Collect data for the table.
         Table.h=MainData(countAngle,1); %h
         Table.k=MainData(countAngle,2); %k
         Table.l=MainData(countAngle,3); %l
         Table.BraggAngle=MainData(countAngle,5)/2;
         Table.TwoTheta=MainData(countAngle,5);
-        Table.Intensity=MainData(countAngle,8); 
+        Table.Intensity=MainData(countAngle,8);
         Table.RelativeIntensity=Table.Intensity/maxI*100;
         Table.d=MainData(countAngle,6);
         Table.TwoPi_Distance=2*pi/Table.d;
         Table.d_r=1/Table.d;
         
-        
-        ArrayIndex=ArrayIndex+1;
         XRD_plot(indexPlot,1)=MainData(countAngle,5); %2theta
         XRD_plot(indexPlot,2)=MainData(countAngle,8); %Intensity of the actual point
         indexPlot=indexPlot+1;
-        if countAngle<length-1
-            while(MainData(countAngle+1,7)>1&&(countAngle<(length-2)))
-                countAngle=countAngle+1;
+        
+        if countAngle<length
+            while(MainData(countAngle+1,7)>1)
+                if countAngle<length-1
+                    countAngle=countAngle+1;
+                else
+                    countAngle=length;
+                    break;
+                end
             end
         end
+        
         Table.m=MainData(countAngle,7);
-        countAngle=countAngle+1;
         Array(ArrayIndex)=Table;
+        ArrayIndex=ArrayIndex+1;
+        if countAngle<length
+            if MainData(countAngle+1,5)-MainData(countAngle,5)<Resolution
+                warning('The separation between some peaks is less than the Resolution.\n Please decrease the value for Resolution.');
+                display(MainData(countAngle,5));
+                display(MainData(countAngle+1,5));
+                display(MainData(countAngle,7));
+                display(MainData(countAngle+1,7));
+            end
+        end
+        if countAngle<length
+            countAngle=countAngle+1;
+        end
+        
     else
         XRD_plot(indexPlot,1)=angle; %Looping through the angles.
         XRD_plot(indexPlot,2)=0; %No intensity
         indexPlot=indexPlot+1;
         
-    end       
+    end
 end
-% subplot(2,1,1);
+
 hold on;
 plot(XRD_plot(:,1),XRD_plot(:,2)*100/max(XRD_plot(:,2)),'-b','linewidth',1.5);
 xlabel('2\theta');
@@ -228,37 +267,10 @@ axis([0 180 0 105]);
 hold on;
 
 legend('MATLAB');
-%% A new plot similar to actual XRD is generated.
-% Xtheta=zeros(5,180+length);
-% count=1;
-% % Make 0 in intensity everything that is not in the data.
-% for i=1:180+length
-%     if count<=length
-%         if((MainData(count,5)-i+count)<Resolution)
-%             Xtheta(1,i)=MainData(count,5);
-%             Xtheta(2,i)=MainData(count,8);
-%             Xtheta(3,i)=MainData(count,1);
-%             Xtheta(4,i)=MainData(count,2);
-%             Xtheta(5,i)=MainData(count,3);
-%             count=count+1;
-%         else
-%             Xtheta(1,i)=i-count;
-%         end
-%     else
-%         Xtheta(1,i)=i-count;
-%         
-%     end
-% end
-% Xtheta=Xtheta';
-% figure;
-% plot(Xtheta(:,1),Xtheta(:,2),'-b');
-% xlabel('2\theta');
-% ylabel('Intensity');
-% title(Lattice.Symbol);
-% axis([0 180 0 1.1*max(Xtheta(:,2))]);
-% hold on;
 
-%% Make table with Miller indeces.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Make table with Miller indeces.
 Table=struct2table(Array);
 time=datestr(datetime('now'));
 time(15)='_';
@@ -283,25 +295,4 @@ elseif size(TypeOfFile,2)==3
 else %default do nothing
 end
 
-
-
-
-% Former text file generation on the basis of the data generated. Updated
-% version of data output above in table generation with different
-% extension.
-% fid=fopen(Filename,'a');
-% fprintf(fid,'\r\n');
-% fprintf(fid,'Start of a new data set \r\n');
-% fprintf(fid,strcat('The energy is  ',num2str(Probe.Energy)));
-% fprintf(fid,'\r\n %s %s %s %s %s\r\n','h','k','l','2theta','Intensity');
-% for i=1:length
-%     if(MainData(i,6)==1)
-%         fprintf (fid,'%d %d %d %f %f\r\n',MainData(i,1),MainData(i,2),MainData(i,3),MainData(i,5),MainData(i,8));
-%         
-% %     else
-% %         fprintf(fid,'%d %d %d\r\n',MainData(i,1),MainData(i,2),MainData(i,3));
-%         
-%     end
-% end
-% fclose(fid);
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
