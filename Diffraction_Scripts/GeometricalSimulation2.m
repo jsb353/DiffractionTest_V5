@@ -1,4 +1,4 @@
-% Created for electron diffraction in transmission
+% Created for electron diffraction in transmission.
 % It will generate the diffraction patter for electrons for all planes of
 % reflectinos inputed. If a visual representation of the direction of the
 % beam is desired, add a 6th input as an integer positive number or use
@@ -6,16 +6,20 @@
 % reflection normals.
 % The shapes permitted for the detector are only circle and square. Default
 % is square.
+% Last Updated 5/16/17 Jacob Bolduc
 
 function [I] = GeometricalSimulation2(Lattice, Probe, Detector, hkl_space, FigNum,FigNumElectroRepresentation)
 
 % save GeometricalSimulation1.mat Lattice Probe Crystal Detector hkl_space
 
-I = zeros(10000,10000);
+I = zeros(1000,1000);
 PixelsPerUnit = size(I,1)/Detector.Size;
 % dy = Detector.DistanceToSample*tan((Probe.psi)*pi/180);
 dy = 0 ;
 
+
+%Detector Shape check. If no shape was ever given in the main form, the
+%variable defaults to square.
 if isfield(Detector,'Shape')==0  % default
     Detector.Shape =  'square';
 elseif Detector.Shape == 's'
@@ -36,16 +40,21 @@ xy_space = [0 0];
 log = [];
 
 index=1;
-Bragg=zeros(1,125);
+Bragg=zeros(1,125); %What are you doing here, Cosine?
 for k = hkl_space
     for h = hkl_space        
         for l = hkl_space
             if h==0 && k==0 && l==0
             else
-                Lattice.Reflection = [h k l];
-                [SF, Lattice, Probe] = StructureFactor(Lattice, Probe); % CALCULATE THE STRUCTURE FACTOR
-                Bragg(index)=SF.BraggAngle; index=index+1;
-                if SF.BraggAngle< 2 % small Bragg angles
+                Lattice.Reflection = [h k l]; % Lattice Reflection is defined
+                [SF, Lattice, Probe] = StructureFactor(Lattice, Probe); %Struct Factor is called
+                Bragg(index)=SF.BraggAngle; 
+                index=index+1;
+                
+                
+                if SF.BraggAngle< 2 %this is for electrons, so we assume small Bragg angles
+                    
+                    
                     % Get results from TransmissionsDiffraction
                     if nargin>5
                         Result =TransmissionDiffraction(SF.BraggAngle, SF.CrystalNormal, SF.ReflectionNormal,FigNumElectroRepresentation); %% && Result.ReflectedSpherical(2)<=90
@@ -54,8 +63,7 @@ for k = hkl_space
                     end
                     
                     theta = Result.ReflectedSpherical(1);
-                    % If the intesntity is not aboeve 10^-10, it's not
-                    % displayed
+                    % Intensity minimum threshold of 1e-10 
                     if SF.Intensity > 1e-10
                         theta=theta*pi/180;
                         psi = 180-Result.ReflectedSpherical(2);
@@ -64,22 +72,32 @@ for k = hkl_space
                         y = Detector.DistanceToSample*tan(psi)*sin(theta);
                         x = round(x*10)/10;
                         y = round(y*10)/10;
-                        % If the spot is legal (no imaginary parts) and is on the screen, make spots
-                        %                         if imag(SF.BraggAngle)==0 && imag(theta)==0 && imag(psi)==0
-                            log = [log; h, k, l];
+
+                     % if imag(SF.BraggAngle)==0 && imag(theta)==0 && imag(psi)==0
+                       log = [log; h, k, l];
+                            %Checks to makes sure the spot is:
+                            % a) Real 
+                            % b) On the Detector screen
                             if (strcmpi(Detector.Shape, 'square')==1 && abs(x)<Detector.Size/2 && abs(y)<Detector.Size/2+Detector.Offset(2)) || (strcmpi(Detector.Shape, 'circle')==1 && (x^2+y^2)<(Detector.Size/2)^2)
+                                
                                 pix_r = floor((y/Detector.Size+0.5)*size(I,1)+0.5);
                                 pix_c = floor((x/Detector.Size+0.5)*size(I,2)+0.5);
-                                %
-                                %     if size(find(xy_space(:,1)==round(x)),1)==0 && size(find(xy_space(:,2)==round(y)),1)==0
+                                
+                                % if size(find(xy_space(:,1)==round(x)),1)==0 && size(find(xy_space(:,2)==round(y)),1)==0
                                 I = CreateSpot(I, pix_c-Detector.Offset(1)*PixelsPerUnit, pix_r-Detector.Offset(2)*PixelsPerUnit, Detector.SpotFWHMx*PixelsPerUnit, Detector.SpotFWHMy*PixelsPerUnit, sqrt(SF.Intensity), atan(x/y)*180/pi);
+                                
+                                %Reflects the diffraction pattern over the
+                                %vertical axis; noice the "-x" in pix_c
+                                %here.
                                 pix_r = floor((y/Detector.Size+0.5)*size(I,1)+0.5);
                                 pix_c = floor((-x/Detector.Size+0.5)*size(I,2)+0.5);
                                 if nargin>5
                                     figure(FigNum)
                                 end
                                 display(strcat(num2str(h),num2str(k),num2str(l)))
+                                
                                 I = CreateSpot(I, pix_c-Detector.Offset(1)*PixelsPerUnit, pix_r-Detector.Offset(2)*PixelsPerUnit, Detector.SpotFWHMx*PixelsPerUnit, Detector.SpotFWHMy*PixelsPerUnit, sqrt(SF.Intensity), -atan(x/y)*180/pi);
+                                
                                 text(x-Detector.Offset(1),y-Detector.Offset(2),strcat([num2str(h), num2str(k), num2str(l)]));
                                 text(-x-Detector.Offset(1),y-Detector.Offset(2),strcat([num2str(h), num2str(k), num2str(l)]));
                                 %    else
