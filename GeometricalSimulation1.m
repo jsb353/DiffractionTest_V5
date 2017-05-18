@@ -5,19 +5,24 @@
 function I = GeometricalSimulation1(Lattice, Probe, Detector, hkl_space, FigNum)
 
 % save GeometricalSimulation1.mat Lattice Probe Crystal Detector hkl_space
-%% Input extension to save data
+
+
+% Input extension to save data
 TypeOfFile=input('What kind of file extension do you want?\nOptions: nothing (press Enter), txt, xlsx, xls, dat, csv \n','s');
 
-%% Original program starts here
+
+% Original program starts here
 I = zeros(3000,3000);
 PixelsPerUnit = size(I,1)/Detector.Size;
 dy = Detector.DistanceToSample*tan((Probe.psi)*pi/180);
 
-%% Check the shape of the detector. If no input, assume square.
+% Check the shape of the detector. If no input, assume square.
 if isfield(Lattice,'Shape')==0  % default
     Detector.Shape =  'square';
 end
-%% If a number for the figure is in input, generate figure no# FigNum.
+
+
+% If a number for the figure is in input, generate figure no# FigNum.
 % Proceed to plot the main ray point. No crystalographic value.
 if nargin>4 % plot result
     figure(FigNum)
@@ -28,7 +33,9 @@ if nargin>4 % plot result
 end
 
 xy_space = [0 0];
-%% Loop over hkl and output image
+
+
+% Loop over hkl and output image
 index=1;
 Old_Theta_I=[];
 Old_Theta_R=[];
@@ -36,11 +43,15 @@ for k = hkl_space
     for h = hkl_space
         
         for l = hkl_space
-            %% Generate the reflection directions (using Miller indeces).
+            % Generate the reflection directions (using Miller indeces).
             Lattice.Reflection = [h k l];
             [SF, Lattice, Probe] = StructureFactor(Lattice, Probe); % CALCULATE THE STRUCTURE FACTOR
+            
+            
             % If the Bragg angle is smaller than the asymmetric angle.
             if SF.BraggAngle<SF.AssymAngle
+                
+                
                 % Use NonCoplanarDiffraction script to obtain the result.
                 Result = NonCoplanarDiffraction(SF.BraggAngle, Probe.psi, SF.CrystalNormal, SF.ReflectionNormal); %% && Result.ReflectedSpherical(2)<=90
                 theta = -(Result.IncidentSpherical(1)-Result.ReflectedSpherical(1)); % Get theta from the information in Result.
@@ -67,13 +78,17 @@ for k = hkl_space
 
                                 
                                 I = CreateSpot(I, pix_c, pix_r, Detector.SpotFWHMx*PixelsPerUnit, Detector.SpotFWHMy*PixelsPerUnit, sqrt(SF.Intensity), atan(x/y)*180/pi);
+                                
+                                %Reflects over vertical axis.
                                 pix_r = floor((y/Detector.Size+0.5)*size(I,1)+0.5-Detector.Offset(2)*PixelsPerUnit);
-                                pix_c = floor((-x/Detector.Size+0.5)*size(I,2)+0.5-Detector.Offset(1)*PixelsPerUnit);
+                                pix_c = floor((-x/Detector.Size+0.5)*size(I,2)+0.5-Detector.Offset(1)*PixelsPerUnit);                                                           
                                 I = CreateSpot(I, pix_c, pix_r, Detector.SpotFWHMx*PixelsPerUnit, Detector.SpotFWHMy*PixelsPerUnit, sqrt(SF.Intensity), -atan(x/y)*180/pi);
+                                
+                                
                                 text(x-Detector.Offset(1),y-Detector.Offset(2),strcat([num2str(h), num2str(k), num2str(l)]));
                                 text(-x-Detector.Offset(1),y-Detector.Offset(2),strcat([num2str(h), num2str(k), num2str(l)]));
                                 
-                                %% Collect data for table
+                                % Collect data for table
                                 Table.h=h;
                                 Table.k=k;
                                 Table.l=l;
@@ -103,7 +118,7 @@ for k = hkl_space
                                 Old_Theta_I=Result.IncidentSpherical(1);
                                 Old_Theta_R=Result.ReflectedSpherical(1);
                                 index=index+1;
-                                %% End of collection of data for table
+                                % End of collection of data for table
                             else
                                 %    [h k l]
                                 % [x y]
@@ -116,8 +131,12 @@ for k = hkl_space
         end
     end
 end
+
+
 I = flipud(I);
-%% Save table if needed.
+
+
+% Save table
 Table=struct2table(Array);
 time=datestr(datetime('now'));
 time(15)='_';
@@ -143,7 +162,7 @@ elseif size(TypeOfFile,2)==3
 else %default do nothing
 end
 
-%% Continuation of original program
+%
 if nargin>4 % plot result
     if strcmpi(Detector.Shape, 'square') == 1
         %plot([-Detector.Size/2 Detector.Size/2], [Detector.Size/2 Detector.Size/2], '-k', 'LineWidth', 2)

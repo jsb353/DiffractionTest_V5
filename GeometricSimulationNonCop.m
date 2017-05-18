@@ -1,5 +1,13 @@
 % Generate a table of values for the angles for the incident and reflected
-% beam. Needs commenting.
+% beam.
+% Asks what type of file extension the end user would like the file saved
+% in, runs through the hardcoded hkl range in the main form script being
+% used, and records:
+% The hkl plane the peak occurs at
+% The incident Theta and Psi in spherical space
+% The reflected Theta and Psi in spherical space
+% The incident vector in cartesian space
+% The reflected vector in cartesian space
 
 function Table=GeometricSimulationNonCop(Lattice, Probe,Detector, hkl_space)
 % Check what kind of file does the user want.
@@ -66,7 +74,7 @@ elseif size(TypeOfFile,2)==3
         Name=strcat(Lattice.Symbol,'_',Lattice.Type,'_','XRD_spherical_angles.xls');
         writetable(Table,Name);
     end
-else %default do nothing
+else %default do nothing, just outputs as a matlab variable table
 end
 
 
