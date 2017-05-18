@@ -5,10 +5,10 @@ close %all
 
 % PATH TO DIFFWIZ LIBRARY
 addpath(genpath('C:\Users\maher\Dropbox\Physics\lund\DIFFWIZ\'))
-addpath(genpath('C:\Users\Cosmin\Desktop\Cr2AlC\'))
+
 
 % DEFINE YOUR LATTICE OR LOAD LATTICE FROM EXISTING STRUCTURE LIBRARY
-load Cr2AlC.mat
+
 
 % DEFINE YOUR CRYSTAL
 Lattice.Normal = [214.61 268.27 0]; % direction of crystal surface
