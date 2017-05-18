@@ -2,10 +2,8 @@
 home;
 close all;
 
-addpath(genpath('C:\Users\Cosmin\Desktop\Grand Diffraction Master'))
-addpath(genpath('C:\Users\Cosmin\Desktop\Cr2AlC'))
-% addpath(genpath('C:\Users\Cosmin\Desktop\Diffraction-master\StructureLibrary'))
-% addpath(genpath('C:\Users\Cosmin\Desktop\Diffraction-master\TestScripts'))
+addpath(genpath('C:\Users\Cosmin\Desktop\Diffraction-master\StructureLibrary'))
+addpath(genpath('C:\Users\Cosmin\Desktop\Diffraction-master\TestScripts'))
 
 
 load graphite.mat
