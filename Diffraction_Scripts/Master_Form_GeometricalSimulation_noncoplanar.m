@@ -2,8 +2,8 @@
 
 % CLEAN WORKSPACE
 home
-%clear
-%close all
+clear
+close all
 
 % PATH TO DIFFWIZ LIBRARY
 addpath(genpath('C:\Users\maher\Google drive\DIFFWIZ\'))
