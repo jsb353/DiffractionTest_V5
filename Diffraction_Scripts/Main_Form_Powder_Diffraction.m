@@ -23,14 +23,17 @@ Probe.Energy = 8048.3; % [eV]
 % Detector is not used for Powder Diffraction.
 
 % MILLER INDICES TO LOOP OVER 
-hkl = 0:10;
+hkl = 6;
 
 %Ignores all peaks which have intensities under 1.
 Threshold = 1;
 
 %Resolution between peaks.
-Seperation = 0.1;
+Separation = 0.1;
 
 
 % MAIN FUNCTION
-I = Generate_Intensity_2theta(Lattice, Probe,FigNum,hkl,Threshold, Separation)
+I = Generate_Intensity_2theta(Lattice, Probe,1,hkl,Threshold, Separation)
+
+% For Ocatave Use
+% I = 
