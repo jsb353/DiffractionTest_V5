@@ -25,7 +25,7 @@
 %
 % Last updated 5-17-2017 Cosmin Popescu
 
-function [Array]=Generate_Intensity_2theta(Lattice, Probe,FigNum,hkl,Threshold, Separation)
+function [Table]=Generate_Intensity_2theta(Lattice, Probe,FigNum,hkl,Threshold, Separation)
 %% Get the XRD Pattern
 
 %% Loop over different hkl values individually.
