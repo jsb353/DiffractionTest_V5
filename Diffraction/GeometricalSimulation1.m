@@ -2,7 +2,7 @@
 % Probe.psi is grazing angle in degrees (small)
 % Last updates 4-26-2017 Cosmin Popescu
 
-function I = GeometricalSimulation1(Lattice, Probe, Detector, hkl_space, FigNum)
+function [I,Table] = GeometricalSimulation1(Lattice, Probe, Detector, hkl_space, FigNum)
 
 % save GeometricalSimulation1.mat Lattice Probe Crystal Detector hkl_space
 
@@ -39,6 +39,8 @@ xy_space = [0 0];
 index=1;
 Old_Theta_I=[];
 Old_Theta_R=[];
+
+
 for k = hkl_space
     for h = hkl_space
         

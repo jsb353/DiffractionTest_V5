@@ -1,3 +1,4 @@
+
 % EXAMPLE SCRIPT TO GENERATE DIFFRACTION PATTERN FROM NONCOPLANAR DIFFRACTION GEOMETRY
 
 % CLEAN WORKSPACE
@@ -6,8 +7,9 @@ clear
 close all
 
 % PATH TO DIFFWIZ LIBRARY
+% Use add path to connect all files in the subfolders to the directory
 addpath(genpath('C:\Users\maher\Google drive\DIFFWIZ\'))
-
+addpath(genpath('C:\Users\Cosmin\Desktop\DiffractionTest_V5\'))
 
 % DEFINE LATTICE OR LOAD LATTICE FROM EXISTING STRUCTURE LIBRARY
 load graphite.mat
