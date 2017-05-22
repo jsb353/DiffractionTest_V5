@@ -1,4 +1,3 @@
-
 %% Generate the XRD Pattern
 % Generates a simulated powder x-ray diffraction pattern, a scatter plot
 % with the intensities of individual reflection with the hkl value of one
@@ -11,44 +10,45 @@
 % The function requires minimum of 2 inputs: Lattice and Probe 
 % GENERATE_INTENSITY_2THETA(LATTICE, PROBE) generates the powder x-ray
 % pattern and the table with indeces between 0 and 8 and with Threshold=1
-% and Resolution-0.1;
+% and Separation-0.1;
 %
 % GENERATE_INTENSITY_2THETA(LATTICE, PROBE,FIGNUM) Gives just the powder x-ray
-% pattern and the table with a Threshold=1 and Resolution=0.1 and hkl=6;
+% pattern and the table with a Threshold=1 and Separation=0.1 and hkl=6;
 %
 % GENERATE_INTENSITY_2THETA(LATTICE, PROBE,FIGNUM,HKL) Gives the x-ray
-% pattern, the table with Threshold=1 and Resolution=0.1;
+% pattern, the table with Threshold=1 and Separation=0.1;
 %
 % If for high hkl values, you don't get all the expected information in the
-% table, it might be because the resolution is too high. Consider
-% decreasing it.
+% table, it might be because the separation between the peaks is too high.
+% Consider decreasing it.
 %
 %
 % Last updated 5-17-2017 Cosmin Popescu
 
-function [Table]=Generate_Intensity_2theta(Lattice, Probe,FigNum,hkl,Threshold, Resolution)
+function [OutputMatrix]=Generate_Intensity_2theta_Octave(Lattice, Probe,FigNum,hkl,Threshold, Separation)
 %% Get the XRD Pattern
 
-% Loop over different hkl values individually.
+%% Loop over different hkl values individually.
 % Go through all combinations given by user of Miller
 % indeces and returns the resulting information from Structure Factor. If
 % the Bragg angle is real and the intensity is above a threshold, these
 % values are save.
 
 % Promt user for input on type of file output at the end.
-TypeOfFile=input('What kind of file extension do you want?\nOptions: nothing (press Enter), txt, xlsx, xls, dat, csv \n','s');
-
+% TypeOfFile=input('What kind of file extension do you want?\nOptions: nothing (press Enter), txt, xlsx, xls, dat, csv \n','s');
+display('Some features not supported by Octave have been removed');
 
 MainData=zeros(10,4);
 countofdata=1;
+% Check for user input. Fill in if not input. 
 if nargin <4
    hkl=6; 
 end
 if nargin<5
     Threshold=1;
-    Resolution=0.1;
+    Separation=0.1;
 elseif nargin<6
-    Resolution=0.1;
+    Separation=0.1;
 end
 
 
@@ -192,7 +192,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% Generating XRD plot with resolution based on range.
+%% Generating XRD plot with separation between the peaks based on user input or default.
 
 if nargin>2
     figure(FigNum+1)
@@ -200,24 +200,34 @@ else % default
     figure
 end
 countAngle=1;
-XRD_plot=zeros(ceil(180/Resolution+length),5);
+XRD_plot=zeros(ceil(180/Separation+length),5);
 indexPlot=1;
 ArrayIndex=1;
 maxI=max(MainData(:,8));
-for angle=0:Resolution:180
-    if (angle<MainData(countAngle,5))&& (angle+Resolution>MainData(countAngle,5)&&countAngle<length-1)
+OutputMatrix=[];
+for angle=0:Separation:180
+    if (angle<MainData(countAngle,5))&& (angle+Separation>MainData(countAngle,5)&&countAngle<length-1)
         % Collect data for the table.
-        Table.h=MainData(countAngle,1); %h
-        Table.k=MainData(countAngle,2); %k
-        Table.l=MainData(countAngle,3); %l
-        Table.BraggAngle=MainData(countAngle,5)/2;
-        Table.TwoTheta=MainData(countAngle,5);
-        Table.Intensity=MainData(countAngle,8);
-        Table.RelativeIntensity=Table.Intensity/maxI*100;
-        Table.d=MainData(countAngle,6);
-        Table.TwoPi_Distance=2*pi/Table.d;
-        Table.d_r=1/Table.d;
-        
+%         Table.h=MainData(countAngle,1); %h
+%         Table.k=MainData(countAngle,2); %k
+%         Table.l=MainData(countAngle,3); %l
+%         Table.BraggAngle=MainData(countAngle,5)/2;
+%         Table.TwoTheta=MainData(countAngle,5);
+%         Table.Intensity=MainData(countAngle,8);
+%         Table.RelativeIntensity=Table.Intensity/maxI*100;
+%         Table.d=MainData(countAngle,6);
+%         Table.TwoPi_Distance=2*pi/Table.d;
+%         Table.d_r=1/Table.d;
+        OutputMatrix(ArrayIndex,1)=MainData(countAngle,1);
+        OutputMatrix(ArrayIndex,2)=MainData(countAngle,2);
+        OutputMatrix(ArrayIndex,3)=MainData(countAngle,3);
+        OutputMatrix(ArrayIndex,4)=MainData(countAngle,5)/2;
+        OutputMatrix(ArrayIndex,5)=MainData(countAngle,5);
+        OutputMatrix(ArrayIndex,6)=MainData(countAngle,8);
+        OutputMatrix(ArrayIndex,7)=MainData(countAngle,8)/maxI*100;
+        OutputMatrix(ArrayIndex,8)=MainData(countAngle,6);
+        OutputMatrix(ArrayIndex,9)=2*pi/MainData(countAngle,6);
+        OutputMatrix(ArrayIndex,10)=1/MainData(countAngle,6);
         XRD_plot(indexPlot,1)=MainData(countAngle,5); %2theta
         XRD_plot(indexPlot,2)=MainData(countAngle,8); %Intensity of the actual point
         indexPlot=indexPlot+1;
@@ -233,12 +243,13 @@ for angle=0:Resolution:180
             end
         end
         
-        Table.m=MainData(countAngle,7);
-        Array(ArrayIndex)=Table;
+%         Table.m=MainData(countAngle,7);
+%         Array(ArrayIndex)=Table;
+        OutputMatrix(ArrayIndex,11)=MainData(countAngle,7);
         ArrayIndex=ArrayIndex+1;
         if countAngle<length
-            if MainData(countAngle+1,5)-MainData(countAngle,5)<Resolution
-                warning('The separation between some peaks is less than the Resolution.\n Please decrease the value for Resolution.');
+            if MainData(countAngle+1,5)-MainData(countAngle,5)<Separation
+                warning('The separation between some peaks is less than the Separation.\n Please decrease the value for Separation.');
                 display(MainData(countAngle,5));
                 display(MainData(countAngle+1,5));
                 display(MainData(countAngle,7));
@@ -270,29 +281,30 @@ legend('MATLAB');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+
+
 % Make table with Miller indeces.
-Table=struct2table(Array);
-time=datestr(datetime('now'));
-time(15)='_';
-time(18)='_';
-time(12)='_';
-NameOFile=strcat(Lattice.Symbol,'_',Lattice.Type,'_',num2str(Probe.Energy),'eV','_',time,'.');
-
-if size(TypeOfFile,2)==4
-    if TypeOfFile=='xlsx'
-        writetable(Table,strcat(NameOFile,'xlsx'));
-    end
-elseif size(TypeOfFile,2)==3
-    if TypeOfFile== 'txt'
-        writetable(Table,strcat(NameOFile,'txt'));
-    elseif TypeOfFile=='dat'
-        writetable(Table,strcat(NameOFile,'dat'));
-    elseif TypeOfFile == 'csv'
-        writetable(Table,strcat(NameOFile,'csv'));
-    elseif TypeOfFile == 'xls'
-        writetable(Table,strcat(NameOFile,'xls'));
-    end
-else %default do nothing
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Table=struct2table(Array);
+% time=datestr(datetime('now'));
+% time(15)='_';
+% time(18)='_';
+% time(12)='_';
+% NameOFile=strcat(Lattice.Symbol,'_',Lattice.Type,'_',num2str(Probe.Energy),'eV','_',time,'.');
+% 
+% if size(TypeOfFile,2)==4
+%     if TypeOfFile=='xlsx'
+%         writetable(Table,strcat(NameOFile,'xlsx'));
+%     end
+% elseif size(TypeOfFile,2)==3
+%     if TypeOfFile== 'txt'
+%         writetable(Table,strcat(NameOFile,'txt'));
+%     elseif TypeOfFile=='dat'
+%         writetable(Table,strcat(NameOFile,'dat'));
+%     elseif TypeOfFile == 'csv'
+%         writetable(Table,strcat(NameOFile,'csv'));
+%     elseif TypeOfFile == 'xls'
+%         writetable(Table,strcat(NameOFile,'xls'));
+%     end
+% else %default do nothing
+% end

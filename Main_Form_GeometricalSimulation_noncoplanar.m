@@ -17,7 +17,7 @@ Lattice.Normal = [0 0 1];
 
 % DEFINE X-RAYS
 Probe.Type = 'xrays';
-Probe.Energy = 8048.3; % [eV]
+Probe.Energy = 18000; % [eV]
 Probe.DiffractionGeometry = 'noncoplanar';
 Probe.psi = 0.2; % This's the grazing angle
 
@@ -30,10 +30,10 @@ Detector.DistanceToSample = 50; % Sample-detector distance in mm
 Detector.Offset = [0 25]; % offset from center of beam in mm
 
 % MILLER INDICES TO LOOP OVER 
-hkl = 0:10;
+hkl = -6:6;
 
 % MAIN FUNCTION
-I = GeometricalSimulation1(Lattice, Probe, Detector, hkl, 1);
+I = GeometricalSimulation1(Lattice, Probe, Detector, hkl, 1)
 
 
 
